@@ -72,10 +72,10 @@ func WriteDefaultConfigFile(targetPath string) error {
 
 	dir := filepath.Dir(targetPath)
 	if dir != "." && dir != "" {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0750); err != nil {
 			return fmt.Errorf("failed creating directory: %w", err)
 		}
 	}
 
-	return os.WriteFile(targetPath, content, 0644)
+	return os.WriteFile(targetPath, content, 0600)
 }

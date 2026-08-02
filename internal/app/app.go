@@ -55,13 +55,15 @@ func (a *App) Run(ctx context.Context) error {
 	dashSrv := dashboard.NewServer(apiH, a.webFS)
 
 	proxyHTTP := &http.Server{
-		Addr:    fmt.Sprintf(":%d", a.cfg.Port),
-		Handler: proxySrv,
+		Addr:              fmt.Sprintf(":%d", a.cfg.Port),
+		Handler:           proxySrv,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	dashHTTP := &http.Server{
-		Addr:    fmt.Sprintf(":%d", a.cfg.UIPort),
-		Handler: dashSrv.Router(),
+		Addr:              fmt.Sprintf(":%d", a.cfg.UIPort),
+		Handler:           dashSrv.Router(),
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	a.log.Info("================================================================")
