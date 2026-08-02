@@ -22,19 +22,13 @@ jobs:
           cache: true
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: v2.12.2
+        run: go tool golangci-lint run ./...
 
       - name: Run gosec Security Scanner
-        uses: securego/gosec@master
-        with:
-          args: './...'
+        run: go tool gosec ./...
 
       - name: Run Vulnerability Check (govulncheck)
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+        run: go tool govulncheck ./...
 
   unit-tests:
     name: Test Suite (Multi-OS)

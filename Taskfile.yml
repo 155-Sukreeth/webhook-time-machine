@@ -31,35 +31,32 @@ tasks:
       - ./{{.BUILD_DIR}}/{{.BINARY_NAME}} init
 
   test:
-    desc: Run unit & integration tests with coverage
+    desc: Run unit & integration tests with coverage (matches CI exactly)
     cmds:
       - go test -v -coverprofile coverage.out ./...
 
   lint:
-    desc: Run golangci-lint quality checks
+    desc: Run golangci-lint quality checks via go tool (single source of truth from go.mod)
     cmds:
-      - golangci-lint run ./...
-    ignore_error: true
+      - go tool golangci-lint run ./...
 
   sec:
-    desc: Run gosec security AST scanner
+    desc: Run gosec security AST scanner via go tool (single source of truth from go.mod)
     cmds:
-      - gosec ./...
-    ignore_error: true
+      - go tool gosec ./...
 
   vulndb:
-    desc: Run govulncheck dependency vulnerability scanner
+    desc: Run govulncheck dependency vulnerability scanner via go tool (single source of truth from go.mod)
     cmds:
-      - govulncheck ./...
-    ignore_error: true
+      - go tool govulncheck ./...
 
   ci:
-    desc: Run full CI test & quality suite (test, lint, sec, vulndb)
+    desc: Run full CI suite exactly as GitHub Actions does — stops on first failure
     cmds:
-      - task: test
       - task: lint
       - task: sec
       - task: vulndb
+      - task: test
 
   clean:
     desc: Remove build directory, test coverage outputs, and local database files
