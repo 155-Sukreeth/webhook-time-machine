@@ -62,6 +62,29 @@ wtm start --forward-to http://localhost:3000 --port 8080 --ui-port 8081
 - Configure external webhooks to target `http://localhost:8080`
 - Open your browser at `http://localhost:8081` to view and interact with the **Webhook Time Machine** desktop dashboard!
 
+### Development & Local Tooling Setup
+
+Install local CI quality tooling binaries into your `$GOPATH/bin`:
+
+```bash
+# Install Task runner
+go install github.com/go-task/task/v3/cmd/task@latest
+
+# Install linters & security analyzers
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install github.com/securego/gosec/v2/cmd/gosec@latest
+go install golang.org/x/vuln/cmd/govulncheck@latest
+```
+
+### Task Commands (using `task` / `go-task`)
+- `task build`: Compiles `bin/wtm` binary.
+- `task test`: Runs unit test suite with coverage profile.
+- `task lint`: Runs `golangci-lint`.
+- `task sec`: Runs `gosec` AST security scanner.
+- `task vulndb`: Runs `govulncheck` vulnerability checker.
+- `task ci`: Executes test, lint, sec, and vulndb targets sequentially.
+- `task clean`: Cleans build artifacts and test outputs.
+
 ---
 
 ## License
