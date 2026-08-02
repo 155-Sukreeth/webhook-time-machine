@@ -1,0 +1,67 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  BINARY_NAME: wtm
+  BUILD_DIR: bin
+  CMD_PATH: ./cmd/wtm
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    desc: Build the wtm binary executable
+    cmds:
+      - mkdir -p {{.BUILD_DIR}}
+      - go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}} {{.CMD_PATH}}
+
+  run:
+    desc: Build and run wtm start
+    deps: [build]
+    cmds:
+      - ./{{.BUILD_DIR}}/{{.BINARY_NAME}} start
+
+  init:
+    desc: Initialize default .wtm.yaml configuration file
+    deps: [build]
+    cmds:
+      - ./{{.BUILD_DIR}}/{{.BINARY_NAME}} init
+
+  test:
+    desc: Run unit & integration tests with coverage
+    cmds:
+      - go test -v -coverprofile coverage.out ./...
+
+  lint:
+    desc: Run golangci-lint quality checks
+    cmds:
+      - golangci-lint run ./...
+    ignore_error: true
+
+  sec:
+    desc: Run gosec security AST scanner
+    cmds:
+      - gosec ./...
+    ignore_error: true
+
+  vulndb:
+    desc: Run govulncheck dependency vulnerability scanner
+    cmds:
+      - govulncheck ./...
+    ignore_error: true
+
+  ci:
+    desc: Run full CI test & quality suite (test, lint, sec, vulndb)
+    cmds:
+      - task: test
+      - task: lint
+      - task: sec
+      - task: vulndb
+
+  clean:
+    desc: Remove build directory, test coverage outputs, and local database files
+    cmds:
+      - rm -rf {{.BUILD_DIR}} coverage.out wtm.db
