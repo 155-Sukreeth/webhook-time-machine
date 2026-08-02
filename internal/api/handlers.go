@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/155-Sukreeth/webhook-time-machine/internal/models"
@@ -58,7 +59,10 @@ func (a *APIHandler) DeleteWebhook(w http.ResponseWriter, r *http.Request, id st
 
 func (a *APIHandler) TriggerReplay(w http.ResponseWriter, r *http.Request, id string) {
 	var payload models.ReplayRequestPayload
-	_ = json.NewDecoder(r.Body).Decode(&payload)
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil && err != io.EOF {
+		respondJSON(w, http.StatusBadRequest, models.APIResponse{Success: false, Error: "invalid replay request JSON payload: " + err.Error()})
+		return
+	}
 
 	logResult, err := a.executor.ExecuteReplay(r.Context(), id, payload, a.cfg.StripSignatures)
 	if err != nil {
