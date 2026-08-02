@@ -3,9 +3,14 @@
 version: '3'
 
 vars:
+  GO_VERSION:
+    sh: GOTOOLCHAIN=local go list -m -f "{{"{{"}}.GoVersion{{"}}"}}"
   BINARY_NAME: wtm
   BUILD_DIR: bin
   CMD_PATH: ./cmd/wtm
+
+env:
+  GOTOOLCHAIN: "go{{.GO_VERSION}}"
 
 tasks:
   default:
