@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wtm — Webhook Time Machine</title>
+    <style>
+        :root {
+            --bg-base: #121214;
+            --bg-surface: #1a1a1e;
+            --bg-header: #222228;
+            --bg-active: #2a2a32;
+            --bg-hover: #26262e;
+            --border-color: #33333d;
+            --text-main: #e1e1e6;
+            --text-muted: #8d8d99;
+            --accent-blue: #4a9eff;
+            --accent-green: #34d399;
+            --accent-amber: #fbbf24;
+            --accent-red: #f87171;
+            --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'Cascadia Code', Consolas, monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 38px;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-weight: 600;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+        .brand-badge {
+            background: #2b303b;
+            color: var(--accent-blue);
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 11px;
+            border: 1px solid #3b4252;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .search-bar {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .search-input {
+            width: 100%;
+            background: var(--bg-base);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 10px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            outline: none;
+        }
+        .search-input:focus { border-color: var(--accent-blue); }
+
+        .request-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .request-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #23232b;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .request-item:hover { background: var(--bg-hover); }
+        .request-item.active {
+            background: var(--bg-active);
+            border-left: 3px solid var(--accent-blue);
+        }
+        .req-header-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .method-badge {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 11px;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+        .method-POST { background: #1e3a5f; color: #60a5fa; }
+        .method-GET { background: #064e3b; color: #34d399; }
+        .method-PUT { background: #78350f; color: #fbbf24; }
+        .method-DELETE { background: #7f1d1d; color: #f87171; }
+        
+        .status-badge { font-family: var(--font-mono); font-size: 11px; }
+        .status-2xx { color: var(--accent-green); }
+        .status-4xx, .status-5xx { color: var(--accent-red); }
+
+        .req-path {
+            font-family: var(--font-mono);
+            color: var(--text-main);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .req-time { font-size: 11px; color: var(--text-muted); }
+
+        .detail-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-base);
+        }
+
+        .toolbar {
+            height: 42px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+        }
+        .btn-group { display: flex; gap: 6px; }
+        .btn {
+            background: var(--bg-header);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover { background: var(--bg-active); border-color: #4a4a58; }
+        .btn-primary { background: #1d4ed8; border-color: #2563eb; color: #ffffff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #991b1b; border-color: #dc2626; color: #ffffff; }
+
+        .tab-bar {
+            display: flex;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-right: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .tab:hover { color: var(--text-main); }
+        .tab.active {
+            background: var(--bg-base);
+            color: var(--accent-blue);
+            border-top: 2px solid var(--accent-blue);
+        }
+
+        .tab-content {
+            flex: 1;
+            padding: 12px;
+            overflow: auto;
+            display: none;
+        }
+        .tab-content.active { display: block; }
+
+        pre, textarea.editor {
+            width: 100%;
+            height: 100%;
+            min-height: 350px;
+            background: #0d0d0f;
+            border: 1px solid var(--border-color);
+            color: #a9b1d6;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 12px;
+            outline: none;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        table.kv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        table.kv-table th, table.kv-table td {
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            text-align: left;
+        }
+        table.kv-table th { background: var(--bg-surface); color: var(--text-muted); }
+
+        footer.status-bar {
+            height: 24px;
+            background: #16161a;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .status-indicator { display: flex; align-items: center; gap: 12px; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+        .dot-online { background: var(--accent-green); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <span>WTM</span>
+            <span class="brand-badge">v1.0.0</span>
+            <span style="color: var(--text-muted); font-weight: normal;">— Webhook Time Machine</span>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="sidebar">
+            <div class="search-bar">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search webhooks...">
+            </div>
+            <div class="request-list" id="requestList"></div>
+        </div>
+
+        <div class="detail-pane">
+            <div class="toolbar">
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="triggerReplay()">⚡ Replay</button>
+                    <button class="btn" onclick="toggleEditMode()">✏️ Edit Payload</button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-danger" onclick="deleteCurrentRequest()">🗑️ Delete</button>
+                </div>
+            </div>
+
+            <div class="tab-bar">
+                <div class="tab active" onclick="switchTab('request')">Request</div>
+                <div class="tab" onclick="switchTab('response')">Response</div>
+                <div class="tab" onclick="switchTab('headers')">Headers</div>
+                <div class="tab" onclick="switchTab('history')">Replay History</div>
+            </div>
+
+            <div id="tab-request" class="tab-content active">
+                <textarea id="requestBodyEditor" class="editor" readonly></textarea>
+            </div>
+            <div id="tab-response" class="tab-content">
+                <pre id="responseBodyViewer">Select a request</pre>
+            </div>
+            <div id="tab-headers" class="tab-content">
+                <table class="kv-table">
+                    <thead><tr><th>Header Name</th><th>Value</th></tr></thead>
+                    <tbody id="headersTableBody"></tbody>
+                </table>
+            </div>
+            <div id="tab-history" class="tab-content">
+                <table class="kv-table">
+                    <thead><tr><th>Timestamp</th><th>Target URL</th><th>Status</th><th>Duration</th></tr></thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="status-bar">
+        <div class="status-indicator">
+            <span><span class="dot dot-online"></span> Proxy: <strong style="color:var(--text-main)" id="statusProxy">Online</strong></span>
+        </div>
+        <div><span>DB: <strong style="color:var(--accent-green)">Connected</strong></span></div>
+    </footer>
+
+    <script>
+        let currentRequest = null;
+        let isEditMode = false;
+
+        async function fetchRequests() {
+            const query = document.getElementById('searchInput').value;
+            const res = await fetch('/api/v1/webhooks?query=' + encodeURIComponent(query));
+            const body = await res.json();
+            const requests = body.data ? body.data.requests : [];
+            renderRequestList(requests);
+        }
+
+        function renderRequestList(requests) {
+            const listEl = document.getElementById('requestList');
+            listEl.innerHTML = '';
+            requests.forEach((req, idx) => {
+                const item = document.createElement('div');
+                item.className = 'request-item' + (currentRequest && currentRequest.id === req.id ? ' active' : '');
+                item.onclick = () => selectRequest(req);
+                const statusClass = req.response_status_code >= 200 && req.response_status_code < 300 ? 'status-2xx' : 'status-4xx';
+
+                item.innerHTML = `
+                    <div class="req-header-line">
+                        <span class="method-badge method-${req.method}">${req.method}</span>
+                        <span class="status-badge ${statusClass}">${req.response_status_code || 'ERR'}</span>
+                    </div>
+                    <div class="req-path">${req.path || req.url}</div>
+                    <div class="req-time">${new Date(req.timestamp).toLocaleTimeString()} — ${req.duration_ms}ms</div>
+                `;
+                listEl.appendChild(item);
+                if (idx === 0 && !currentRequest) selectRequest(req);
+            });
+        }
+
+        function selectRequest(req) {
+            currentRequest = req;
+            document.querySelectorAll('.request-item').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('requestBodyEditor').value = formatJSON(req.body);
+            document.getElementById('responseBodyViewer').textContent = formatJSON(req.response_body);
+
+            const tbody = document.getElementById('headersTableBody');
+            tbody.innerHTML = '';
+            if (req.headers) {
+                Object.entries(req.headers).forEach(([k, v]) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td><strong>${k}</strong></td><td>${v}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+            fetchReplayHistory(req.id);
+        }
+
+        async function fetchReplayHistory(reqId) {
+            const res = await fetch(`/api/v1/replays/${reqId}`);
+            const body = await res.json();
+            const logs = body.data || [];
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${new Date(log.timestamp).toLocaleString()}</td><td>${log.target_url}</td><td>${log.response_status_code || 'FAIL'}</td><td>${log.duration_ms}ms</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function formatJSON(str) {
+            try { return JSON.stringify(JSON.parse(str), null, 2); }
+            catch(e) { return str; }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const editor = document.getElementById('requestBodyEditor');
+            editor.readOnly = !isEditMode;
+            editor.style.borderColor = isEditMode ? 'var(--accent-blue)' : 'var(--border-color)';
+        }
+
+        async function triggerReplay() {
+            if (!currentRequest) return;
+            const body = document.getElementById('requestBodyEditor').value;
+            const res = await fetch(`/api/v1/replays/${currentRequest.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ body: body })
+            });
+            if (res.ok) {
+                alert('Replay successful!');
+                fetchRequests();
+            } else {
+                alert('Replay failed');
+            }
+        }
+
+        async function deleteCurrentRequest() {
+            if (!currentRequest || !confirm('Delete request?')) return;
+            await fetch(`/api/v1/webhooks/${currentRequest.id}`, { method: 'DELETE' });
+            currentRequest = null;
+            fetchRequests();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', fetchRequests);
+        fetchRequests();
+        setInterval(fetchRequests, 5000);
+    </script>
+</body>
+</html>
