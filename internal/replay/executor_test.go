@@ -25,13 +25,13 @@ func TestExecutor_ReplaySignatureHeaderStripping(t *testing.T) {
 	defer mockServer.Close()
 
 	tempDir, _ := os.MkdirTemp("", "wtm-replay-test-*")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	store, err := storage.New(filepath.Join(tempDir, "test.db"))
 	if err != nil {
 		t.Fatalf("failed init storage: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 	_ = store.InitSchema(ctx)

@@ -119,7 +119,7 @@ func (s *Storage) ListRequests(ctx context.Context, filter models.RequestFilter)
 	if err != nil {
 		return nil, 0, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var list []*models.WebhookRequest
 	for rows.Next() {
@@ -172,7 +172,7 @@ func (s *Storage) GetReplayLogs(ctx context.Context, requestID string) ([]*model
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var logs []*models.ReplayLog
 	for rows.Next() {

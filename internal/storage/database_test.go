@@ -15,14 +15,14 @@ func TestStorage_SaveAndRetrieve(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	dbPath := filepath.Join(tempDir, "test.db")
 	store, err := storage.New(dbPath)
 	if err != nil {
 		t.Fatalf("failed init storage: %v", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	ctx := context.Background()
 	if err := store.InitSchema(ctx); err != nil {

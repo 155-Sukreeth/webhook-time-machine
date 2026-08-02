@@ -39,7 +39,7 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("storage error: %w", err)
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 
 	if err := store.InitSchema(ctx); err != nil {
 		return fmt.Errorf("schema init error: %w", err)

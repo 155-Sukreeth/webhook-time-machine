@@ -113,7 +113,7 @@ func (e *Executor) ExecuteReplay(ctx context.Context, origID string, payload mod
 		_ = e.store.SaveReplayLog(ctx, log)
 		return log, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, _ := io.ReadAll(resp.Body)
 	log.ResponseStatusCode = resp.StatusCode
