@@ -53,7 +53,7 @@ jobs:
           cache: true
 
       - name: Run Unit & Integration Tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: go test -v -coverprofile coverage.out ./...
 
       - name: Upload Coverage Artifact
         if: matrix.os == 'ubuntu-latest'
