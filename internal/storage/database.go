@@ -6,7 +6,7 @@ import (
 	"embed"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 	"github.com/155-Sukreeth/webhook-time-machine/internal/models"
 	"github.com/155-Sukreeth/webhook-time-machine/internal/utils"
 )
@@ -19,7 +19,7 @@ type Storage struct {
 }
 
 func New(dbPath string) (*Storage, error) {
-	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_synchronous=NORMAL")
+	db, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL&_synchronous=NORMAL")
 	if err != nil {
 		return nil, fmt.Errorf("failed opening database at %s: %w", dbPath, err)
 	}

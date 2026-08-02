@@ -9,4 +9,4 @@
 *.exe
 *.test
 .wtm.yaml
-coverage.out
+coverage*
