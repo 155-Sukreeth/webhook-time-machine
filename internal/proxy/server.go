@@ -87,7 +87,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fwdStart := time.Now()
-	resp, err := s.httpClient.Do(outReq)
+	resp, err := s.httpClient.Do(outReq) // #nosec G704 -- Intentional proxy forwarding behavior
 	duration := time.Since(fwdStart).Milliseconds()
 	webhookReq.DurationMs = duration
 
