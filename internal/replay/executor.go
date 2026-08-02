@@ -115,7 +115,10 @@ func (e *Executor) ExecuteReplay(ctx context.Context, origID string, payload mod
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		respBody = []byte(fmt.Sprintf("Error reading response body: %v", readErr))
+	}
 	log.ResponseStatusCode = resp.StatusCode
 	log.ResponseBody = string(respBody)
 

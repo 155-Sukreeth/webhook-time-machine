@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -97,7 +98,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		respBody = []byte(fmt.Sprintf("Error reading response body: %v", err))
+	}
 	webhookReq.ResponseStatusCode = resp.StatusCode
 	webhookReq.ResponseBody = string(respBody)
 
@@ -108,7 +112,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	webhookReq.ResponseHeaders = respHeaders
 
-	_ = s.store.SaveRequest(r.Context(), webhookReq)
+	if err := s.store.SaveRequest(r.Context(), webhookReq); err != nil {
+		log.Printf("[WTM WARN] Failed to save request to storage: %v", err)
+	}
 
 	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(respBody)
@@ -117,6 +123,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) logAndRespondError(w http.ResponseWriter, req *models.WebhookRequest, errMsg string, code int) {
 	req.ResponseStatusCode = code
 	req.ResponseBody = fmt.Sprintf(`{"error": %q}`, errMsg)
-	_ = s.store.SaveRequest(context.Background(), req)
+	if err := s.store.SaveRequest(context.Background(), req); err != nil {
+		log.Printf("[WTM WARN] Failed to save error request to storage: %v", err)
+	}
 	http.Error(w, errMsg, code)
 }
+
