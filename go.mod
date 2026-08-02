@@ -1,6 +1,6 @@
 module github.com/155-Sukreeth/webhook-time-machine
 
-go 1.25.10
+go 1.22
 
 require (
 	github.com/go-task/task/v3 v3.52.0
