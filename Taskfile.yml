@@ -31,27 +31,27 @@ tasks:
       - ./{{.BUILD_DIR}}/{{.BINARY_NAME}} init
 
   test:
-    desc: Run unit & integration tests with coverage (matches CI exactly)
+    desc: Run unit & integration tests with coverage
     cmds:
       - go test -v -coverprofile coverage.out ./...
 
   lint:
-    desc: Run golangci-lint quality checks via go tool (single source of truth from go.mod)
+    desc: Run golangci-lint quality checks via go tool
     cmds:
       - go tool golangci-lint run ./...
 
   sec:
-    desc: Run gosec security AST scanner via go tool (single source of truth from go.mod)
+    desc: Run gosec security AST scanner via go tool
     cmds:
       - go tool gosec ./...
 
   vulndb:
-    desc: Run govulncheck dependency vulnerability scanner via go tool (single source of truth from go.mod)
+    desc: Run govulncheck dependency vulnerability scanner via go tool
     cmds:
       - go tool govulncheck ./...
 
   ci:
-    desc: Run full CI suite exactly as GitHub Actions does — stops on first failure
+    desc: Run full CI suite stops on first failure
     cmds:
       - task: lint
       - task: sec
